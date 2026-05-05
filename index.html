@@ -106,24 +106,22 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .remove-btn:hover{opacity:0.8;}
 .drag-handle{font-size:13px;opacity:0.2;cursor:grab;flex-shrink:0;padding-top:2px;}
 
-/* PICKERS */
-.picker{margin-top:10px;background:#f9f8f5;border:0.5px solid var(--border);border-radius:8px;padding:12px 14px;display:none;}
-.picker.visible{display:block;}
-.picker-title{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
-.sub-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
-.sub-tab{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:5px;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--surface);}
-.sub-tab.active{background:#2c2b28;color:#e8e6df;border-color:#2c2b28;}
+/* PICKERS - now inline per block */
+.inline-picker{margin-top:8px;background:rgba(0,0,0,0.06);border-radius:6px;padding:10px 12px;}
+.sub-tabs{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
+.sub-tab{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:5px;border:0.5px solid rgba(0,0,0,0.15);cursor:pointer;color:inherit;opacity:0.6;background:transparent;}
+.sub-tab.active{opacity:1;background:rgba(0,0,0,0.15);border-color:rgba(0,0,0,0.25);}
 .sub-items{display:flex;flex-direction:column;gap:5px;}
-.sub-item{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;padding:3px 2px;}
-.sub-cb{width:14px;height:14px;border:0.5px solid #ccc;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.12s;}
+.sub-item{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;padding:2px 0;}
+.sub-cb{width:14px;height:14px;border:0.5px solid rgba(0,0,0,0.25);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.12s;background:rgba(255,255,255,0.5);}
 .sub-cb.on{background:#378ADD;border-color:#378ADD;}
 .sub-cb.on::after{content:'';width:7px;height:4px;border-left:1.5px solid white;border-bottom:1.5px solid white;transform:rotate(-45deg) translateY(-1px);display:block;}
-.sub-txt{color:var(--text);line-height:1.3;}
-.custom-input{width:100%;margin-top:8px;font-family:var(--mono);font-size:12px;padding:7px 10px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;}
-.custom-input:focus{border-color:#378ADD;}
+.sub-txt{line-height:1.3;}
+.inline-custom-input{width:100%;margin-top:7px;font-family:var(--mono);font-size:12px;padding:6px 9px;border:0.5px solid rgba(0,0,0,0.2);border-radius:5px;background:rgba(255,255,255,0.6);color:var(--text);outline:none;}
+.inline-custom-input:focus{background:rgba(255,255,255,0.9);}
 .cf-times{display:flex;gap:6px;flex-wrap:wrap;}
-.cf-time{background:var(--surface);border:0.5px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--mono);cursor:pointer;color:var(--muted);}
-.cf-time.selected{background:#2c2b28;color:#e8e6df;border-color:#2c2b28;}
+.cf-time{border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;padding:4px 11px;font-size:12px;font-family:var(--mono);cursor:pointer;opacity:0.6;background:rgba(255,255,255,0.4);}
+.cf-time.selected{opacity:1;background:rgba(0,0,0,0.18);border-color:rgba(0,0,0,0.3);font-weight:500;}
 
 /* SUMMARY */
 .summary{margin-top:14px;background:var(--bg);border-radius:8px;padding:12px 14px;}
@@ -212,27 +210,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
             <button class="clear-btn" onclick="clearDay()">clear</button>
           </div>
           <div class="dropzone" id="dropzone"></div>
-          <div class="picker" id="cf-picker">
-            <div class="picker-title">crossfit time</div>
-            <div class="cf-times">
-              <span class="cf-time" onclick="setCFTime('12:00pm')">12:00pm</span>
-              <span class="cf-time" onclick="setCFTime('3:30pm')">3:30pm</span>
-              <span class="cf-time" onclick="setCFTime('4:30pm')">4:30pm</span>
-              <span class="cf-time" onclick="setCFTime('5:30pm')">5:30pm</span>
-            </div>
-          </div>
-          <div class="picker" id="work-picker">
-            <div class="picker-title">work block · what's on deck</div>
-            <div class="sub-tabs" id="work-tabs"></div>
-            <div class="sub-items" id="work-items"></div>
-            <input class="custom-input" id="work-custom" placeholder="or type something..." oninput="saveCustom('work',this.value)">
-          </div>
-          <div class="picker" id="todo-picker">
-            <div class="picker-title">projects/to-do · what's on deck</div>
-            <div class="sub-tabs" id="todo-tabs"></div>
-            <div class="sub-items" id="todo-items"></div>
-            <input class="custom-input" id="todo-custom" placeholder="or type something..." oninput="saveCustom('projects',this.value)">
-          </div>
           <div class="summary">
             <div class="summary-title">summary</div>
             <div class="summary-empty" id="sum-empty">add blocks to build your day</div>
@@ -303,8 +280,6 @@ const startDate = new Date(2026,4,5);
 for(let i=0;i<13;i++){const d=new Date(startDate);d.setDate(d.getDate()+i);DATES.push(d);}
 
 let currentDay = 0;
-let workTab = 'deadlines';
-let todoTab = 'urgent';
 let dragging = null;
 let dragSource = null;
 let dragOverIndex = null;
@@ -350,7 +325,6 @@ function render(){
   renderDateDots();
   renderPalette();
   renderDropzone();
-  renderPickers();
   renderSummary();
 }
 
@@ -370,12 +344,14 @@ function renderDateDots(){
   });
 }
 
+function uid(){ return Math.random().toString(36).slice(2,8); }
+
 function addCustomBlock(){
   const input = document.getElementById('custom-block-input');
   const val = input.value.trim();
   if(!val) return;
   let plan = getPlan();
-  plan.push({id:'custom', customLabel:val, checked:{}, custom:'', cfTime:null});
+  plan.push({id:'custom', uid:uid(), customLabel:val, checked:{}, custom:'', cfTime:null, activeTab:null});
   setPlan(plan);
   input.value='';
   render();
@@ -409,28 +385,62 @@ function renderDropzone(){
   } else {
     dz.className='dropzone';
     plan.forEach((b,i)=>{
-      const block = BLOCKS.find(x=>x.id===b.id);
       const isCustom = b.id==='custom';
+      const block = isCustom ? null : BLOCKS.find(x=>x.id===b.id);
       const color = isCustom ? 'c-amber' : block.color;
-      const dot = isCustom ? '#e0a800' : block.dot;
       const name = isCustom ? b.customLabel : block.name;
+      if(!b.uid) b.uid = uid();
+      const buid = b.uid;
       const div = document.createElement('div');
       div.className='placed '+color;
       div.draggable=true;
-      const timeStr = b.id==='crossfit'&&b.cfTime?` · ${b.cfTime}`:'';
+
+      let pickerHTML='';
+      if(b.id==='crossfit'){
+        const times=['12:00pm','3:30pm','4:30pm','5:30pm'];
+        pickerHTML=`<div class="inline-picker"><div class="cf-times">${
+          times.map(t=>`<span class="cf-time${b.cfTime===t?' selected':''}" onclick="setCFTime('${buid}','${t}')">${t}</span>`).join('')
+        }</div></div>`;
+      } else if(b.id==='work'||b.id==='projects'){
+        const cats = b.id==='work' ? WORK_CATS : TODO_CATS;
+        const activeTab = b.activeTab || Object.keys(cats)[0];
+        const tabsHTML = Object.keys(cats).map(k=>
+          `<span class="sub-tab${k===activeTab?' active':''}" onclick="setBlockTab('${buid}','${k}')">${k}</span>`
+        ).join('');
+        const itemsHTML = (cats[activeTab]||[]).map(item=>{
+          const on = b.checked&&b.checked[item];
+          const esc = item.replace(/'/g,"\\'");
+          return `<div class="sub-item" onclick="toggleItem('${buid}','${esc}')">
+            <div class="sub-cb${on?' on':''}"></div>
+            <span class="sub-txt">${item}</span>
+          </div>`;
+        }).join('');
+        pickerHTML=`<div class="inline-picker">
+          <div class="sub-tabs">${tabsHTML}</div>
+          <div class="sub-items">${itemsHTML}</div>
+          <input class="inline-custom-input" placeholder="or type something..." value="${(b.custom||'').replace(/"/g,'&quot;')}"
+            oninput="saveCustom('${buid}',this.value)">
+        </div>`;
+      }
+
       const selCount = b.checked ? Object.values(b.checked).filter(Boolean).length : 0;
-      const hasCustomNote = b.custom && b.custom.trim();
-      const detailStr = (b.id==='work'||b.id==='projects')
-        ? [selCount>0?`${selCount} item${selCount>1?'s':''} selected`:'', hasCustomNote?b.custom.trim():''].filter(Boolean).join(' + ')
-        : timeStr.replace(' · ','');
+      const hasNote = b.custom && b.custom.trim();
+      const cfStr = b.id==='crossfit'&&b.cfTime?b.cfTime:'';
+      const selStr = (b.id==='work'||b.id==='projects') ? [selCount>0?`${selCount} selected`:'', hasNote?b.custom.trim():''].filter(Boolean).join(' + ') : '';
+      const detailStr = cfStr || selStr;
+
       div.innerHTML=`
         <span class="drag-handle">⠿</span>
         <div class="placed-main">
-          <div class="placed-name">${name}</div>
-          ${detailStr?`<div class="placed-detail">${detailStr}</div>`:''}
+          <div class="placed-name">${name}${detailStr?`<span style="font-weight:400;opacity:0.65;font-size:11px;font-family:var(--mono);margin-left:8px;">${detailStr}</span>`:''}</div>
+          ${pickerHTML}
         </div>
         <button class="remove-btn" onclick="removeBlock(${i})">×</button>`;
-      div.addEventListener('dragstart',()=>{ dragging=isCustom?{id:'custom',customLabel:b.customLabel}:block; dragSource=i; });
+      div.addEventListener('dragstart',e=>{
+        if(e.target.closest('.inline-picker,.inline-custom-input,.sub-item,.cf-time,.sub-tab')){ e.preventDefault(); return; }
+        dragging=isCustom?{id:'custom',customLabel:b.customLabel,uid:buid}:block;
+        dragSource=i;
+      });
       div.addEventListener('dragover',e=>{ e.preventDefault(); dragOverIndex=i; });
       dz.appendChild(div);
     });
@@ -448,8 +458,8 @@ function renderDropzone(){
       dragOverIndex=null;
     } else {
       const already = plan.findIndex(x=>x.id===dragging.id);
-      if(already===-1||dragging.id==='work'||dragging.id==='projects'){
-        plan.push({id:dragging.id, checked:{}, custom:'', cfTime:null});
+      if(already===-1||dragging.id==='work'||dragging.id==='projects'||dragging.id==='custom'){
+        plan.push({id:dragging.id, uid:uid(), customLabel:dragging.customLabel||'', checked:{}, custom:'', cfTime:null, activeTab:null});
       }
     }
     dragging=null; dragSource=null;
@@ -459,68 +469,35 @@ function renderDropzone(){
   document.getElementById('slot-count') && (document.getElementById('slot-count').textContent=plan.length+' block'+(plan.length!==1?'s':''));
 }
 
-function renderPickers(){
-  const plan = getPlan();
-  // crossfit
-  const cfEntry = plan.find(b=>b.id==='crossfit');
-  const cfPicker = document.getElementById('cf-picker');
-  cfPicker.className='picker'+(cfEntry?' visible':'');
-  if(cfEntry){
-    cfPicker.querySelectorAll('.cf-time').forEach(el=>{ el.className='cf-time'+(el.textContent===cfEntry.cfTime?' selected':''); });
-  }
-  // work
-  const workEntry = plan.find(b=>b.id==='work');
-  renderSubPicker('work', !!workEntry, WORK_CATS, workTab, 'work-picker','work-tabs','work-items','work-custom');
-  // projects
-  const todoEntry = plan.find(b=>b.id==='projects');
-  renderSubPicker('projects', !!todoEntry, TODO_CATS, todoTab, 'todo-picker','todo-tabs','todo-items','todo-custom');
-}
+function renderPickers(){} // now handled inline in renderDropzone
 
-function renderSubPicker(blockId, visible, cats, activeTab, pickerId, tabsId, itemsId, customId){
-  const picker = document.getElementById(pickerId);
-  picker.className='picker'+(visible?' visible':'');
-  if(!visible) return;
-  const plan = getPlan();
-  const entry = plan.find(b=>b.id===blockId)||{checked:{},custom:''};
-  const tabKeys = Object.keys(cats);
-  document.getElementById(tabsId).innerHTML = tabKeys.map(k=>
-    `<span class="sub-tab${k===activeTab?' active':''}" onclick="${blockId==='work'?'setWorkTab':'setTodoTab'}('${k}')">${k}</span>`
-  ).join('');
-  const items = cats[activeTab]||[];
-  document.getElementById(itemsId).innerHTML = items.map(item=>{
-    const on = entry.checked&&entry.checked[item];
-    return `<div class="sub-item" onclick="toggleItem('${blockId}','${item.replace(/'/g,"\\'")}')">
-      <div class="sub-cb${on?' on':''}"></div>
-      <span class="sub-txt">${item}</span>
-    </div>`;
-  }).join('');
-  const ci = document.getElementById(customId);
-  if(ci) ci.value = entry.custom||'';
-}
-
-function setWorkTab(t){ workTab=t; renderPickers(); }
-function setTodoTab(t){ todoTab=t; renderPickers(); }
-
-function toggleItem(blockId, item){
+function setBlockTab(buid, tab){
   let plan = getPlan();
-  const entry = plan.find(b=>b.id===blockId);
+  const entry = plan.find(b=>b.uid===buid);
+  if(entry){ entry.activeTab=tab; setPlan(plan); renderDropzone(); }
+}
+
+function toggleItem(buid, item){
+  let plan = getPlan();
+  const entry = plan.find(b=>b.uid===buid);
   if(!entry) return;
   if(!entry.checked) entry.checked={};
   entry.checked[item]=!entry.checked[item];
   setPlan(plan);
-  render();
+  renderDropzone();
+  renderSummary();
 }
 
-function saveCustom(blockId, val){
+function saveCustom(buid, val){
   let plan = getPlan();
-  const entry = plan.find(b=>b.id===blockId);
-  if(entry){ entry.custom=val; setPlan(plan); renderSummary(); renderDropzone(); }
+  const entry = plan.find(b=>b.uid===buid);
+  if(entry){ entry.custom=val; setPlan(plan); renderSummary(); }
 }
 
-function setCFTime(t){
+function setCFTime(buid, t){
   let plan = getPlan();
-  const entry = plan.find(b=>b.id==='crossfit');
-  if(entry){ entry.cfTime=t; setPlan(plan); render(); }
+  const entry = plan.find(b=>b.uid===buid);
+  if(entry){ entry.cfTime=t; setPlan(plan); renderDropzone(); renderSummary(); }
 }
 
 function removeBlock(i){
@@ -571,13 +548,12 @@ function saveReflect(){
   const data = {
     well:   document.getElementById('r-well').value,
     didnt:  document.getElementById('r-didnt').value,
-    carry:  document.getElementById('r-carry').value,
-    energy: document.getElementById('r-energy').value,
+    tidbit: document.getElementById('r-tidbit').value,
     notes:  document.getElementById('r-notes').value,
   };
   saveReflectData(currentDay, data);
   renderDateDots();
-  document.getElementById('reflect-saved-note').textContent='saved ·  '+new Date().toLocaleTimeString();
+  document.getElementById('reflect-saved-note').textContent='saved · '+new Date().toLocaleTimeString();
 }
 
 // OVERVIEW
