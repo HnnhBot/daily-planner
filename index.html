@@ -80,6 +80,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .c-teal{background:#ddf5f2;border-color:#a8e6e0;color:#1a5c55;}
 .c-slate{background:#eeedf0;border-color:#d4d2db;color:#3a3850;}
 .c-dark{background:#2c2b28;border-color:#3e3d38;color:#e8e6df;}
+.c-amber{background:#fff8e6;border-color:#fce09a;color:#7a5a00;}
+
+.custom-block-wrap{border-radius:8px;padding:9px 12px;border:0.5px dashed #fce09a;background:#fff8e6;}
+.custom-block-wrap .block-name{font-size:12px;color:#7a5a00;font-weight:500;margin-bottom:6px;}
+.custom-block-input{width:100%;font-family:var(--mono);font-size:12px;padding:5px 8px;border:0.5px solid #fce09a;border-radius:5px;background:#fff;color:var(--text);outline:none;}
+.custom-block-input:focus{border-color:#e0a800;}
+.custom-add-btn{margin-top:6px;width:100%;font-family:var(--mono);font-size:11px;padding:5px;border:0.5px solid #fce09a;border-radius:5px;background:#fff8e6;color:#7a5a00;cursor:pointer;letter-spacing:0.03em;}
+.custom-add-btn:hover{background:#fce09a;}
 
 .timeline-wrap{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:16px;}
 .timeline-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -188,6 +196,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       <div>
         <div class="palette-label">blocks</div>
         <div class="palette" id="palette"></div>
+        <div style="margin-top:8px;">
+          <div class="custom-block-wrap">
+            <div class="block-name">+ custom block</div>
+            <input class="custom-block-input" id="custom-block-input" type="text" placeholder="e.g. lunch with a friend" maxlength="48"
+              onkeydown="if(event.key==='Enter') addCustomBlock()">
+            <button class="custom-add-btn" onclick="addCustomBlock()">add to day ↓</button>
+          </div>
+        </div>
       </div>
       <div>
         <div class="timeline-wrap">
@@ -354,6 +370,17 @@ function renderDateDots(){
   });
 }
 
+function addCustomBlock(){
+  const input = document.getElementById('custom-block-input');
+  const val = input.value.trim();
+  if(!val) return;
+  let plan = getPlan();
+  plan.push({id:'custom', customLabel:val, checked:{}, custom:'', cfTime:null});
+  setPlan(plan);
+  input.value='';
+  render();
+}
+
 function renderPalette(){
   const plan = getPlan();
   const usedIds = plan.map(b=>b.id);
@@ -383,23 +410,27 @@ function renderDropzone(){
     dz.className='dropzone';
     plan.forEach((b,i)=>{
       const block = BLOCKS.find(x=>x.id===b.id);
+      const isCustom = b.id==='custom';
+      const color = isCustom ? 'c-amber' : block.color;
+      const dot = isCustom ? '#e0a800' : block.dot;
+      const name = isCustom ? b.customLabel : block.name;
       const div = document.createElement('div');
-      div.className='placed '+block.color;
+      div.className='placed '+color;
       div.draggable=true;
       const timeStr = b.id==='crossfit'&&b.cfTime?` · ${b.cfTime}`:'';
       const selCount = b.checked ? Object.values(b.checked).filter(Boolean).length : 0;
-      const hasCustom = b.custom && b.custom.trim();
+      const hasCustomNote = b.custom && b.custom.trim();
       const detailStr = (b.id==='work'||b.id==='projects')
-        ? [selCount>0?`${selCount} item${selCount>1?'s':''} selected`:'', hasCustom?b.custom.trim():''].filter(Boolean).join(' + ')
+        ? [selCount>0?`${selCount} item${selCount>1?'s':''} selected`:'', hasCustomNote?b.custom.trim():''].filter(Boolean).join(' + ')
         : timeStr.replace(' · ','');
       div.innerHTML=`
         <span class="drag-handle">⠿</span>
         <div class="placed-main">
-          <div class="placed-name">${block.name}</div>
+          <div class="placed-name">${name}</div>
           ${detailStr?`<div class="placed-detail">${detailStr}</div>`:''}
         </div>
         <button class="remove-btn" onclick="removeBlock(${i})">×</button>`;
-      div.addEventListener('dragstart',()=>{ dragging=block; dragSource=i; });
+      div.addEventListener('dragstart',()=>{ dragging=isCustom?{id:'custom',customLabel:b.customLabel}:block; dragSource=i; });
       div.addEventListener('dragover',e=>{ e.preventDefault(); dragOverIndex=i; });
       dz.appendChild(div);
     });
@@ -509,14 +540,17 @@ function renderSummary(){
   if(plan.length===0){ empty.style.display='block'; rows.innerHTML=''; return; }
   empty.style.display='none';
   rows.innerHTML = plan.map((b,i)=>{
-    const block = BLOCKS.find(x=>x.id===b.id);
+    const isCustom = b.id==='custom';
+    const block = isCustom ? null : BLOCKS.find(x=>x.id===b.id);
+    const name = isCustom ? b.customLabel : block.name;
+    const dot = isCustom ? '#e0a800' : block.dot;
     const timeStr = b.id==='crossfit'&&b.cfTime?` @ ${b.cfTime}`:'';
     const selItems = b.checked ? Object.entries(b.checked).filter(([,v])=>v).map(([k])=>k) : [];
     const detail = [...selItems, b.custom&&b.custom.trim()?b.custom.trim():null].filter(Boolean).join(' · ');
     return `<div class="summary-row">
-      <div class="sum-dot" style="background:${block.dot}"></div>
+      <div class="sum-dot" style="background:${dot}"></div>
       <div>
-        <div>${i+1}. ${block.name}${timeStr}</div>
+        <div>${i+1}. ${name}${timeStr}</div>
         ${detail?`<div class="sum-sub">${detail}</div>`:''}
       </div>
     </div>`;
