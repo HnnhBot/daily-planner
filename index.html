@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Planner · May 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --surface:#ffffff;
+  --bg:#f7f6f2;
+  --border:#e8e6df;
+  --text:#1a1916;
+  --muted:#888580;
+  --faint:#ccc9c2;
+  --mono:'DM Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --accent:#1a4a7a;
+  --accent-bg:#ddeeff;
+  --accent-border:#b8d8f8;
+  --saved:#1a5c3a;
+  --saved-bg:#ddf2e8;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:0.5px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;}
+.header-left h1{font-size:17px;font-weight:600;letter-spacing:-0.01em;}
+.header-left p{font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+.save-indicator{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.save-dot{width:7px;height:7px;border-radius:50%;background:var(--faint);transition:background 0.3s;}
+.save-dot.saved{background:#1D9E75;}
+
+/* DATE NAV */
+.date-bar{background:var(--surface);border-bottom:0.5px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.date-nav{display:flex;gap:4px;}
+.date-btn{background:var(--bg);border:0.5px solid var(--border);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all 0.12s;}
+.date-btn:hover{background:#e8e5de;color:var(--text);}
+.date-display{font-size:16px;font-weight:600;min-width:220px;}
+.date-dots{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap;}
+.date-dot{width:10px;height:10px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.12s;position:relative;}
+.date-dot:hover{background:var(--faint);}
+.date-dot.has-plan{background:#378ADD;}
+.date-dot.has-reflect{background:#1D9E75;}
+.date-dot.current{outline:2px solid var(--text);outline-offset:2px;}
+.date-dot-tip{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:10px;font-family:var(--mono);padding:3px 7px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s;}
+.date-dot:hover .date-dot-tip{opacity:1;}
+
+/* TABS */
+.view-tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);background:var(--surface);padding:0 24px;}
+.view-tab{padding:10px 18px;font-size:13px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.12s;font-family:var(--mono);}
+.view-tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500;}
+.view-tab:hover:not(.active){color:var(--text);}
+
+/* MAIN */
+.main{max-width:1000px;margin:0 auto;padding:24px;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* PLAN VIEW */
+.plan-layout{display:grid;grid-template-columns:210px 1fr;gap:20px;align-items:start;}
+@media(max-width:600px){.plan-layout{grid-template-columns:1fr;}}
+
+.palette-label{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+.palette{display:flex;flex-direction:column;gap:6px;}
+.block{border-radius:8px;padding:9px 12px;cursor:grab;user-select:none;border:0.5px solid transparent;transition:transform 0.1s,opacity 0.15s;}
+.block:active{cursor:grabbing;transform:scale(1.02);}
+.block.used{opacity:0.3;cursor:default;pointer-events:none;}
+.block-name{font-size:13px;font-weight:500;line-height:1.2;}
+.block-meta{font-size:11px;opacity:0.7;margin-top:2px;font-family:var(--mono);}
+
+.c-blue{background:#ddeeff;border-color:#b8d8f8;color:#1a4a7a;}
+.c-green{background:#ddf2e8;border-color:#b3e0c8;color:#1a5c3a;}
+.c-green2{background:#e8f5dd;border-color:#c0e0a0;color:#2a4d10;}
+.c-purple{background:#ede8ff;border-color:#d0c5f8;color:#3d2d8a;}
+.c-orange{background:#fff0dd;border-color:#fad9a8;color:#7a4510;}
+.c-pink{background:#fde8f2;border-color:#f5c0de;color:#7a2050;}
+.c-red{background:#fde8e8;border-color:#f5c0c0;color:#7a2020;}
+.c-teal{background:#ddf5f2;border-color:#a8e6e0;color:#1a5c55;}
+.c-slate{background:#eeedf0;border-color:#d4d2db;color:#3a3850;}
+.c-dark{background:#2c2b28;border-color:#3e3d38;color:#e8e6df;}
+
+.timeline-wrap{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:16px;}
+.timeline-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.timeline-title{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;}
+.clear-btn{font-family:var(--mono);font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;}
+.clear-btn:hover{color:var(--text);}
+.dropzone{min-height:60px;border:1.5px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;gap:6px;padding:8px;transition:background 0.15s,border-color 0.15s;}
+.dropzone.over{background:#f0f8ff;border-color:#378ADD;}
+.dropzone.empty{align-items:center;justify-content:center;}
+.drop-hint{font-family:var(--mono);font-size:11px;color:var(--faint);}
+.placed{border-radius:8px;padding:9px 12px;display:flex;align-items:flex-start;gap:8px;}
+.placed-main{flex:1;min-width:0;}
+.placed-name{font-size:13px;font-weight:500;}
+.placed-detail{font-size:11px;opacity:0.7;font-family:var(--mono);margin-top:2px;word-break:break-word;}
+.remove-btn{background:none;border:none;cursor:pointer;font-size:18px;opacity:0.3;line-height:1;color:inherit;flex-shrink:0;}
+.remove-btn:hover{opacity:0.8;}
+.drag-handle{font-size:13px;opacity:0.2;cursor:grab;flex-shrink:0;padding-top:2px;}
+
+/* PICKERS */
+.picker{margin-top:10px;background:#f9f8f5;border:0.5px solid var(--border);border-radius:8px;padding:12px 14px;display:none;}
+.picker.visible{display:block;}
+.picker-title{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.sub-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.sub-tab{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:5px;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--surface);}
+.sub-tab.active{background:#2c2b28;color:#e8e6df;border-color:#2c2b28;}
+.sub-items{display:flex;flex-direction:column;gap:5px;}
+.sub-item{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;padding:3px 2px;}
+.sub-cb{width:14px;height:14px;border:0.5px solid #ccc;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.12s;}
+.sub-cb.on{background:#378ADD;border-color:#378ADD;}
+.sub-cb.on::after{content:'';width:7px;height:4px;border-left:1.5px solid white;border-bottom:1.5px solid white;transform:rotate(-45deg) translateY(-1px);display:block;}
+.sub-txt{color:var(--text);line-height:1.3;}
+.custom-input{width:100%;margin-top:8px;font-family:var(--mono);font-size:12px;padding:7px 10px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;}
+.custom-input:focus{border-color:#378ADD;}
+.cf-times{display:flex;gap:6px;flex-wrap:wrap;}
+.cf-time{background:var(--surface);border:0.5px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--mono);cursor:pointer;color:var(--muted);}
+.cf-time.selected{background:#2c2b28;color:#e8e6df;border-color:#2c2b28;}
+
+/* SUMMARY */
+.summary{margin-top:14px;background:var(--bg);border-radius:8px;padding:12px 14px;}
+.summary-title{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.summary-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;font-size:13px;}
+.sum-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.sum-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+.summary-empty{font-size:12px;color:var(--muted);font-family:var(--mono);}
+
+/* REFLECT VIEW */
+.reflect-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.reflect-grid{grid-template-columns:1fr;}}
+.reflect-card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:18px;}
+.reflect-card.full{grid-column:1/-1;}
+.reflect-label{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.reflect-icon{font-size:14px;}
+.reflect-ta{width:100%;font-family:var(--sans);font-size:14px;color:var(--text);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;resize:vertical;min-height:90px;background:var(--bg);outline:none;line-height:1.6;}
+.reflect-ta:focus{border-color:#378ADD;background:var(--surface);}
+.reflect-ta::placeholder{color:var(--faint);}
+.reflect-note{font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:6px;}
+
+/* OVERVIEW */
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+.ov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.12s;}
+.ov-card:hover{border-color:#378ADD;background:#f5faff;}
+.ov-card.current-day{border-color:var(--text);border-width:1.5px;}
+.ov-date{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px;}
+.ov-weekday{font-size:13px;font-weight:500;margin-bottom:8px;}
+.ov-status{display:flex;gap:5px;flex-wrap:wrap;}
+.ov-pill{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;}
+.ov-pill.plan{background:#ddeeff;color:#1a4a7a;}
+.ov-pill.reflect{background:#ddf2e8;color:#1a5c3a;}
+.ov-pill.empty{color:var(--faint);}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Daily Planner</h1>
+    <p>May 5–17, 2026 · Bozeman / Helena</p>
+  </div>
+  <div class="save-indicator">
+    <div class="save-dot" id="save-dot"></div>
+    <span id="save-label">ready</span>
+  </div>
+</div>
+
+<div class="date-bar">
+  <div class="date-nav">
+    <button class="date-btn" onclick="changeDay(-1)">‹</button>
+    <button class="date-btn" onclick="changeDay(1)">›</button>
+  </div>
+  <span class="date-display" id="date-display"></span>
+  <div class="date-dots" id="date-dots"></div>
+</div>
+
+<div class="view-tabs">
+  <div class="view-tab active" onclick="setView('plan',this)">Day Plan</div>
+  <div class="view-tab" onclick="setView('reflect',this)">Reflection</div>
+  <div class="view-tab" onclick="setView('overview',this)">All Days</div>
+</div>
+
+<div class="main">
+
+  <!-- PLAN VIEW -->
+  <div class="view active" id="view-plan">
+    <div class="plan-layout">
+      <div>
+        <div class="palette-label">blocks</div>
+        <div class="palette" id="palette"></div>
+      </div>
+      <div>
+        <div class="timeline-wrap">
+          <div class="timeline-top">
+            <span class="timeline-title">today's plan</span>
+            <button class="clear-btn" onclick="clearDay()">clear</button>
+          </div>
+          <div class="dropzone" id="dropzone"></div>
+          <div class="picker" id="cf-picker">
+            <div class="picker-title">crossfit time</div>
+            <div class="cf-times">
+              <span class="cf-time" onclick="setCFTime('12:00pm')">12:00pm</span>
+              <span class="cf-time" onclick="setCFTime('3:30pm')">3:30pm</span>
+              <span class="cf-time" onclick="setCFTime('4:30pm')">4:30pm</span>
+              <span class="cf-time" onclick="setCFTime('5:30pm')">5:30pm</span>
+            </div>
+          </div>
+          <div class="picker" id="work-picker">
+            <div class="picker-title">work block · what's on deck</div>
+            <div class="sub-tabs" id="work-tabs"></div>
+            <div class="sub-items" id="work-items"></div>
+            <input class="custom-input" id="work-custom" placeholder="or type something..." oninput="saveCustom('work',this.value)">
+          </div>
+          <div class="picker" id="todo-picker">
+            <div class="picker-title">projects/to-do · what's on deck</div>
+            <div class="sub-tabs" id="todo-tabs"></div>
+            <div class="sub-items" id="todo-items"></div>
+            <input class="custom-input" id="todo-custom" placeholder="or type something..." oninput="saveCustom('projects',this.value)">
+          </div>
+          <div class="summary">
+            <div class="summary-title">summary</div>
+            <div class="summary-empty" id="sum-empty">add blocks to build your day</div>
+            <div id="sum-rows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFLECT VIEW -->
+  <div class="view" id="view-reflect">
+    <div class="reflect-grid">
+      <div class="reflect-card">
+        <div class="reflect-label"><span class="reflect-icon">✓</span> what went well</div>
+        <textarea class="reflect-ta" id="r-well" placeholder="What worked, what felt good, wins big or small..." oninput="saveReflect()"></textarea>
+      </div>
+      <div class="reflect-card">
+        <div class="reflect-label"><span class="reflect-icon">↺</span> what didn't go well</div>
+        <textarea class="reflect-ta" id="r-didnt" placeholder="What got skipped, what felt off, what you'd change..." oninput="saveReflect()"></textarea>
+      </div>
+      <div class="reflect-card">
+        <div class="reflect-label"><span class="reflect-icon">★</span> one memorable tidbit</div>
+        <textarea class="reflect-ta" id="r-tidbit" placeholder="A moment, thought, or detail worth remembering from today..." oninput="saveReflect()"></textarea>
+      </div>
+      <div class="reflect-card full">
+        <div class="reflect-label"><span class="reflect-icon">✎</span> free notes</div>
+        <textarea class="reflect-ta" id="r-notes" placeholder="Anything else on your mind..." style="min-height:110px;" oninput="saveReflect()"></textarea>
+        <div class="reflect-note" id="reflect-saved-note"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW VIEW -->
+  <div class="view" id="view-overview">
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+</div>
+
+<script>
+const BLOCKS = [
+  {id:'reflect',  name:'Coffee & Reflect',        meta:'values · self-acceptance · life path · burning man', color:'c-blue',   dot:'#378ADD'},
+  {id:'music',    name:'Connect with Music',       meta:'organize DJ library · dig music · bitwig/production', color:'c-purple', dot:'#7F77DD'},
+  {id:'crossfit', name:'Crossfit',                 meta:'pick a time',                                         color:'c-dark',   dot:'#555250'},
+  {id:'val-run',  name:'Run with Val',             meta:'',                                                    color:'c-teal',   dot:'#0F6E56'},
+  {id:'val-walk', name:'Walk Val with Audiobook',  meta:'',                                                    color:'c-green',  dot:'#1D9E75'},
+  {id:'yardwork', name:'Yardwork with Audiobook',  meta:'',                                                    color:'c-green2', dot:'#3B6D11'},
+  {id:'work',     name:'Work block',               meta:'pick what to tackle',                                 color:'c-red',    dot:'#E24B4A'},
+  {id:'projects', name:'Projects / To-Do',         meta:'pick what to tackle',                                 color:'c-pink',   dot:'#D4537E'},
+  {id:'cook',     name:'Cook Dinner',              meta:'',                                                    color:'c-orange', dot:'#EF9F27'},
+  {id:'winddown', name:'Wind Down',                meta:'read · no phone · plan tomorrow',                     color:'c-slate',  dot:'#888780'},
+  {id:'sleep',    name:'Sleep',                    meta:'8–9 hrs',                                             color:'c-dark',   dot:'#444441'},
+];
+
+const WORK_CATS = {
+  'deadlines': ['CSTE Slides (due 5/7)', 'Firearm Paper 2 (due 5/8)'],
+  'ongoing':   ['EMS QI Reports', 'Snowflake training', 'Security training'],
+};
+const TODO_CATS = {
+  'urgent':   ['Go grocery shopping','Call Spectrum','Travel insurance claim','Water plants','Schedule skin check','Schedule MRI'],
+  'personal': ["Go through closet / purge","Shop for new clothes","Clean bathroom","Take Sumi's coat to get lining fixed","Sew patches on backpack","Devin Mixtape"],
+  'house':    ['Coat rack clean up','Bathroom upgrade','Replace baseboard','Add tile backsplash / water damage prevention','Clean / tidy basement'],
+};
+
+const DATES = [];
+const startDate = new Date(2026,4,5);
+for(let i=0;i<13;i++){const d=new Date(startDate);d.setDate(d.getDate()+i);DATES.push(d);}
+
+let currentDay = 0;
+let workTab = 'deadlines';
+let todoTab = 'urgent';
+let dragging = null;
+let dragSource = null;
+let dragOverIndex = null;
+let saveTimer = null;
+let currentView = 'plan';
+
+// storage helpers
+function storageKey(type, dayIdx) { return `staycation_2026_${type}_${dayIdx}`; }
+function loadPlan(i){ try{ return JSON.parse(localStorage.getItem(storageKey('plan',i)))||[]; }catch{return [];} }
+function loadReflect(i){ try{ return JSON.parse(localStorage.getItem(storageKey('reflect',i)))||{}; }catch{return {};} }
+function savePlan(i, plan){ localStorage.setItem(storageKey('plan',i), JSON.stringify(plan)); flashSaved(); }
+function saveReflectData(i, data){ localStorage.setItem(storageKey('reflect',i), JSON.stringify(data)); flashSaved(); }
+
+function flashSaved(){
+  const dot = document.getElementById('save-dot');
+  const lbl = document.getElementById('save-label');
+  dot.className='save-dot saved';
+  lbl.textContent='saved';
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{dot.className='save-dot';lbl.textContent='ready';},2000);
+}
+
+function fmt(d){ return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
+function fmtShort(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+
+function getPlan(){ return loadPlan(currentDay); }
+function setPlan(plan){ savePlan(currentDay, plan); }
+
+// VIEW SWITCHING
+function setView(v, el){
+  currentView = v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  el.classList.add('active');
+  if(v==='reflect') renderReflect();
+  if(v==='overview') renderOverview();
+}
+
+// MAIN RENDER
+function render(){
+  document.getElementById('date-display').textContent = fmt(DATES[currentDay]);
+  renderDateDots();
+  renderPalette();
+  renderDropzone();
+  renderPickers();
+  renderSummary();
+}
+
+function renderDateDots(){
+  const container = document.getElementById('date-dots');
+  container.innerHTML = '';
+  DATES.forEach((d,i)=>{
+    const plan = loadPlan(i);
+    const ref = loadReflect(i);
+    const hasReflect = Object.values(ref).some(v=>v&&v.trim());
+    const hasPlan = plan.length>0;
+    const dot = document.createElement('div');
+    dot.className='date-dot'+(hasReflect?' has-reflect':hasPlan?' has-plan':'')+(i===currentDay?' current':'');
+    dot.innerHTML=`<div class="date-dot-tip">${fmtShort(d)}</div>`;
+    dot.onclick=()=>{ currentDay=i; render(); if(currentView==='reflect') renderReflect(); };
+    container.appendChild(dot);
+  });
+}
+
+function renderPalette(){
+  const plan = getPlan();
+  const usedIds = plan.map(b=>b.id);
+  const pal = document.getElementById('palette');
+  pal.innerHTML='';
+  BLOCKS.forEach(b=>{
+    const used = usedIds.includes(b.id) && b.id!=='work' && b.id!=='projects';
+    const div = document.createElement('div');
+    div.className='block '+b.color+(used?' used':'');
+    div.draggable=!used;
+    div.innerHTML=`<div class="block-name">${b.name}</div>${b.meta?`<div class="block-meta">${b.meta}</div>`:''}`;
+    if(!used){
+      div.addEventListener('dragstart',()=>{dragging=b; dragSource='palette';});
+    }
+    pal.appendChild(div);
+  });
+}
+
+function renderDropzone(){
+  const plan = getPlan();
+  const dz = document.getElementById('dropzone');
+  dz.innerHTML='';
+  if(plan.length===0){
+    dz.className='dropzone empty';
+    dz.innerHTML='<span class="drop-hint">drag blocks here · reorder by dragging</span>';
+  } else {
+    dz.className='dropzone';
+    plan.forEach((b,i)=>{
+      const block = BLOCKS.find(x=>x.id===b.id);
+      const div = document.createElement('div');
+      div.className='placed '+block.color;
+      div.draggable=true;
+      const timeStr = b.id==='crossfit'&&b.cfTime?` · ${b.cfTime}`:'';
+      const selCount = b.checked ? Object.values(b.checked).filter(Boolean).length : 0;
+      const hasCustom = b.custom && b.custom.trim();
+      const detailStr = (b.id==='work'||b.id==='projects')
+        ? [selCount>0?`${selCount} item${selCount>1?'s':''} selected`:'', hasCustom?b.custom.trim():''].filter(Boolean).join(' + ')
+        : timeStr.replace(' · ','');
+      div.innerHTML=`
+        <span class="drag-handle">⠿</span>
+        <div class="placed-main">
+          <div class="placed-name">${block.name}</div>
+          ${detailStr?`<div class="placed-detail">${detailStr}</div>`:''}
+        </div>
+        <button class="remove-btn" onclick="removeBlock(${i})">×</button>`;
+      div.addEventListener('dragstart',()=>{ dragging=block; dragSource=i; });
+      div.addEventListener('dragover',e=>{ e.preventDefault(); dragOverIndex=i; });
+      dz.appendChild(div);
+    });
+  }
+  dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();
+    dz.classList.remove('over');
+    if(!dragging) return;
+    let plan = getPlan();
+    if(typeof dragSource==='number'){
+      const from=dragSource, to=dragOverIndex!==null?dragOverIndex:plan.length-1;
+      if(from!==to){ const [item]=plan.splice(from,1); plan.splice(to,0,item); }
+      dragOverIndex=null;
+    } else {
+      const already = plan.findIndex(x=>x.id===dragging.id);
+      if(already===-1||dragging.id==='work'||dragging.id==='projects'){
+        plan.push({id:dragging.id, checked:{}, custom:'', cfTime:null});
+      }
+    }
+    dragging=null; dragSource=null;
+    setPlan(plan);
+    render();
+  });
+  document.getElementById('slot-count') && (document.getElementById('slot-count').textContent=plan.length+' block'+(plan.length!==1?'s':''));
+}
+
+function renderPickers(){
+  const plan = getPlan();
+  // crossfit
+  const cfEntry = plan.find(b=>b.id==='crossfit');
+  const cfPicker = document.getElementById('cf-picker');
+  cfPicker.className='picker'+(cfEntry?' visible':'');
+  if(cfEntry){
+    cfPicker.querySelectorAll('.cf-time').forEach(el=>{ el.className='cf-time'+(el.textContent===cfEntry.cfTime?' selected':''); });
+  }
+  // work
+  const workEntry = plan.find(b=>b.id==='work');
+  renderSubPicker('work', !!workEntry, WORK_CATS, workTab, 'work-picker','work-tabs','work-items','work-custom');
+  // projects
+  const todoEntry = plan.find(b=>b.id==='projects');
+  renderSubPicker('projects', !!todoEntry, TODO_CATS, todoTab, 'todo-picker','todo-tabs','todo-items','todo-custom');
+}
+
+function renderSubPicker(blockId, visible, cats, activeTab, pickerId, tabsId, itemsId, customId){
+  const picker = document.getElementById(pickerId);
+  picker.className='picker'+(visible?' visible':'');
+  if(!visible) return;
+  const plan = getPlan();
+  const entry = plan.find(b=>b.id===blockId)||{checked:{},custom:''};
+  const tabKeys = Object.keys(cats);
+  document.getElementById(tabsId).innerHTML = tabKeys.map(k=>
+    `<span class="sub-tab${k===activeTab?' active':''}" onclick="${blockId==='work'?'setWorkTab':'setTodoTab'}('${k}')">${k}</span>`
+  ).join('');
+  const items = cats[activeTab]||[];
+  document.getElementById(itemsId).innerHTML = items.map(item=>{
+    const on = entry.checked&&entry.checked[item];
+    return `<div class="sub-item" onclick="toggleItem('${blockId}','${item.replace(/'/g,"\\'")}')">
+      <div class="sub-cb${on?' on':''}"></div>
+      <span class="sub-txt">${item}</span>
+    </div>`;
+  }).join('');
+  const ci = document.getElementById(customId);
+  if(ci) ci.value = entry.custom||'';
+}
+
+function setWorkTab(t){ workTab=t; renderPickers(); }
+function setTodoTab(t){ todoTab=t; renderPickers(); }
+
+function toggleItem(blockId, item){
+  let plan = getPlan();
+  const entry = plan.find(b=>b.id===blockId);
+  if(!entry) return;
+  if(!entry.checked) entry.checked={};
+  entry.checked[item]=!entry.checked[item];
+  setPlan(plan);
+  render();
+}
+
+function saveCustom(blockId, val){
+  let plan = getPlan();
+  const entry = plan.find(b=>b.id===blockId);
+  if(entry){ entry.custom=val; setPlan(plan); renderSummary(); renderDropzone(); }
+}
+
+function setCFTime(t){
+  let plan = getPlan();
+  const entry = plan.find(b=>b.id==='crossfit');
+  if(entry){ entry.cfTime=t; setPlan(plan); render(); }
+}
+
+function removeBlock(i){
+  let plan = getPlan();
+  plan.splice(i,1);
+  setPlan(plan);
+  render();
+}
+
+function clearDay(){ setPlan([]); render(); }
+function changeDay(d){ currentDay=Math.max(0,Math.min(12,currentDay+d)); render(); if(currentView==='reflect') renderReflect(); }
+
+function renderSummary(){
+  const plan = getPlan();
+  const empty = document.getElementById('sum-empty');
+  const rows = document.getElementById('sum-rows');
+  if(plan.length===0){ empty.style.display='block'; rows.innerHTML=''; return; }
+  empty.style.display='none';
+  rows.innerHTML = plan.map((b,i)=>{
+    const block = BLOCKS.find(x=>x.id===b.id);
+    const timeStr = b.id==='crossfit'&&b.cfTime?` @ ${b.cfTime}`:'';
+    const selItems = b.checked ? Object.entries(b.checked).filter(([,v])=>v).map(([k])=>k) : [];
+    const detail = [...selItems, b.custom&&b.custom.trim()?b.custom.trim():null].filter(Boolean).join(' · ');
+    return `<div class="summary-row">
+      <div class="sum-dot" style="background:${block.dot}"></div>
+      <div>
+        <div>${i+1}. ${block.name}${timeStr}</div>
+        ${detail?`<div class="sum-sub">${detail}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// REFLECT
+function renderReflect(){
+  const ref = loadReflect(currentDay);
+  document.getElementById('r-well').value   = ref.well||'';
+  document.getElementById('r-didnt').value  = ref.didnt||'';
+  document.getElementById('r-tidbit').value = ref.tidbit||'';
+  document.getElementById('r-notes').value  = ref.notes||'';
+  document.getElementById('reflect-saved-note').textContent='';
+}
+
+function saveReflect(){
+  const data = {
+    well:   document.getElementById('r-well').value,
+    didnt:  document.getElementById('r-didnt').value,
+    carry:  document.getElementById('r-carry').value,
+    energy: document.getElementById('r-energy').value,
+    notes:  document.getElementById('r-notes').value,
+  };
+  saveReflectData(currentDay, data);
+  renderDateDots();
+  document.getElementById('reflect-saved-note').textContent='saved ·  '+new Date().toLocaleTimeString();
+}
+
+// OVERVIEW
+function renderOverview(){
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = DATES.map((d,i)=>{
+    const plan = loadPlan(i);
+    const ref = loadReflect(i);
+    const hasReflect = Object.values(ref).some(v=>v&&v.trim());
+    const hasPlan = plan.length>0;
+    return `<div class="ov-card${i===currentDay?' current-day':''}" onclick="jumpTo(${i})">
+      <div class="ov-date">${fmtShort(d)}</div>
+      <div class="ov-weekday">${d.toLocaleDateString('en-US',{weekday:'short'})}</div>
+      <div class="ov-status">
+        ${hasPlan?`<span class="ov-pill plan">${plan.length} blocks</span>`:''}
+        ${hasReflect?`<span class="ov-pill reflect">reflected</span>`:''}
+        ${!hasPlan&&!hasReflect?`<span class="ov-pill empty">empty</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function jumpTo(i){
+  currentDay=i;
+  setView('plan', document.querySelector('.view-tab'));
+  document.querySelectorAll('.view-tab').forEach((el,idx)=>{ if(idx===0) el.classList.add('active'); else el.classList.remove('active'); });
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
